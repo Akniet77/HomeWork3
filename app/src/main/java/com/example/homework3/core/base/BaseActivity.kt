@@ -18,5 +18,4 @@ abstract class BaseActivity<VB : ViewBinding>: AppCompatActivity() {
 
     open fun initUI(){}
 
-
-}
+    }
