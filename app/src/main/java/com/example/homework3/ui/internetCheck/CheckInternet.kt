@@ -3,38 +3,61 @@ package com.example.homework3.ui.internetCheck
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Build
+import androidx.lifecycle.LiveData
 
 
-class CheckInternet(private val listener: InternetCheckListener) {
+open class CheckInternet(context: Context) : LiveData<Boolean>() {
 
-    private lateinit var connectivityManager: ConnectivityManager
-    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+    private val connectivityManage =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    fun register(context: Context) {
-        connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val networkCallback = object : ConnectivityManager.NetworkCallback(){
 
-
-        networkCallback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                super.onAvailable(network)
-                listener.onInternetAvailable()
-            }
-
-            override fun onLost(network: Network) {
-                super.onLost(network)
-                listener.onInternetLost()
-            }
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            updateConnectionStatus(true)
         }
-        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            updateConnectionStatus(false)
+        }
+
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+            val isConnected = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            updateConnectionStatus(isConnected)
+        }
+
+    }
+    override fun onActive() {
+        super.onActive()
+            registerNetworkCallback()
     }
 
-    fun unregister() {
-        connectivityManager.unregisterNetworkCallback(networkCallback)
+    override fun onInactive() {
+        super.onInactive()
+        unregisterNetworkCallback()
     }
 
-    interface InternetCheckListener {
-        fun onInternetAvailable()
-        fun onInternetLost()
+    private fun registerNetworkCallback(){
+        val builder = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        connectivityManage.registerNetworkCallback(builder.build(), networkCallback)
     }
+
+    private fun unregisterNetworkCallback(){
+        connectivityManage.unregisterNetworkCallback(networkCallback)
+    }
+
+    private fun updateConnectionStatus(isConnected: Boolean){
+        if (value != isConnected) postValue(isConnected)
+    }
+
 }
