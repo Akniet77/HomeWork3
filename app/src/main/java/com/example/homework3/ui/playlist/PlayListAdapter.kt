@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.homework3.data.model.PlayListsModel
 import com.example.homework3.databinding.ItemPlayListBinding
 
-class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.AdapterViewHolder>() {
+class PlayListAdapter(private val click : (id: String) -> Unit) : RecyclerView.Adapter<PlayListAdapter.AdapterViewHolder>() {
     private var list: ArrayList<PlayListsModel.Item> = arrayListOf()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -24,6 +24,9 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.AdapterViewHolder>(
 
     override fun onBindViewHolder(holder: AdapterViewHolder, position: Int) {
         holder.onBind(list[position])
+        holder.itemView.setOnClickListener {
+            click(list[position].id)
+        }
     }
 
     override fun getItemCount() = list.size
@@ -34,6 +37,7 @@ class PlayListAdapter : RecyclerView.Adapter<PlayListAdapter.AdapterViewHolder>(
             playListsModel.snippet.thumbnails.default.url.let { binding.playlistImageView.loadImage(it) }
             binding.playlistTitleTextView.text = playListsModel.snippet.localized.title
             binding.playlistDescriptionTextView.text = playListsModel.snippet.localized.description
+
         }
 
     }

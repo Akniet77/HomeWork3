@@ -9,7 +9,7 @@ data class Resourse<T>(val status: Status, val data : T?, val message: String?){
     }
 
     companion object{
-        fun <T> success(data  : T?): Resourse<T>{
+        fun <T> success(data  : T?): Resourse<T>? {
             return Resourse(Status.SUCCESS, data, null)
         }
         fun <T> loading(): Resourse<T>{
